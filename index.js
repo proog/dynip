@@ -1,18 +1,21 @@
-'use strict';
-
-let ips = {};
-let app = require('express')();
+let app = require('express')()
+  , ips = {};
 
 app.enable('trust proxy');
 app.route('/:name').get((req, res) => {
-  let ip = ips[req.params.name];
+  let info = ips[req.params.name];
 
-  if (!ip)
-    return res.status(404).send('Not found');
+  if (!info) {
+    res.sendStatus(404);
+    return;
+  }
 
-  res.send(ip);
+  res.header('X-Updated', info.time).send(info.ip);
 }).put((req, res) => {
-  ips[req.params.name] = req.ip;
+  ips[req.params.name] = {
+    ip: req.ip,
+    time: new Date().toUTCString()
+  };
   res.status(200).end();
 });
 
